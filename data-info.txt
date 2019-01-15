@@ -1,0 +1,3 @@
+Wiki Dumps:
+https://dumps.wikimedia.org/enwiki/20190101/
+https://github.com/yohasebe/wp2txt
