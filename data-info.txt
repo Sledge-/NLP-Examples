@@ -10,3 +10,6 @@ https://nlp.stanford.edu/projects/glove/
 
 Google News Word Vectors:
 https://github.com/mmihaltz/word2vec-GoogleNews-vectors
+
+Brown Corpus:
+https://www.nltk.org/book/ch02.html
