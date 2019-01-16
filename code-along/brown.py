@@ -14,6 +14,11 @@ def get_sentences_with_word2idx():
     indexed_sentences = []
     i = 2
     word2idx = {'START': 0, 'END':1}
+    for w in keep_words:
+        if w not in word2idx:
+            idx2word.append(w)
+            word2idx[w] = i
+            i += 1
     for sentence in sentences:
         indexed_sentence = []
         for token in sentence:
@@ -54,7 +59,7 @@ def get_sentences_with_word2idx_limit_vocab(n_vocab=2000, keep_words=KEEP_WORDS)
             indexed_sentence.append(idx)
         indexed_sentences.append(indexed_sentence)
     for word in keep_words:
-        set_trace()
+        # set_trace()
         word_idx_count[word2idx[word]] = float('inf')
     sorted_word_idx_count = sorted(word_idx_count.items(), key=operator.itemgetter(1), reverse=True)
     word2idx_small = {}
@@ -62,10 +67,10 @@ def get_sentences_with_word2idx_limit_vocab(n_vocab=2000, keep_words=KEEP_WORDS)
     idx_new_idx_map = {}
     for idx, count in sorted_word_idx_count[:n_vocab]:
         word = idx2word[idx]
-        print(word, count)
+        # print(word, count)
         word2idx_small[word] = new_idx
         idx_new_idx_map[idx] = new_idx
-    word2idx_small['UNKNONW'] = new_idx
+    word2idx_small['UNKNONWN'] = new_idx
     unknown = new_idx
     assert('START' in word2idx_small)
     assert('END' in word2idx_small)
@@ -73,7 +78,7 @@ def get_sentences_with_word2idx_limit_vocab(n_vocab=2000, keep_words=KEEP_WORDS)
         assert(word in word2idx_small)
     sentences_small = []
     for sentence in indexed_sentences:
-        if len(sentence > 1):
+        if len(sentence) > 1:
             new_sentence = [idx_new_idx_map[idx] if idx in idx_new_idx_map else unknown for idx in sentence]
             sentences_small.append(new_sentence)
     return sentences_small, word2idx_small

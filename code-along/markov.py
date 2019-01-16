@@ -27,7 +27,7 @@ def get_bigram_probs(sentences, V, start_idx, end_idx, smoothing=1):
 if __name__ == '__main__':
     sentences, word2idx = get_sentences_with_word2idx_limit_vocab(10000)
 
-    V = len (word2idx)
+    V = len(word2idx)
     print("Vocab size:", V)
 
     start_idx = word2idx['START']
@@ -41,7 +41,7 @@ if __name__ == '__main__':
             if i == 0:
                 score += np.log(bigram_probs[start_idx, sentence[i]])
             else:
-                score += np.log(bigram.probs[sentence[i-1], sentence[i]])
+                score += np.log(bigram_probs[sentence[i-1], sentence[i]])
         score += np.log(bigram_probs[sentence[-1], end_idx])
 
         return score/(len(sentence) + 1)
@@ -60,6 +60,7 @@ if __name__ == '__main__':
         real = sentences[real_idx]
 
         fake = np.random.choice(V, size=len(real), p=sample_probs)
+        print("fake:", fake)
 
         print("REAL:", get_words(real), "SCORE:", get_score(real))
         print("FAKE:", get_words(fake), "SCORE:", get_score(fake))

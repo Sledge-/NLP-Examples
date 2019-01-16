@@ -71,6 +71,15 @@ if __name__ == '__main__':
     print(bglm.get_log_prob('fulton', 'county'))
     print(bglm.get_log_prob('county', 'grand'))
     print(bglm.get_log_prob('grand', 'jury'))
+
     log_prob = bglm.score_sentence('the fulton county grand jury')
+    print(log_prob)
+    print(math.exp(log_prob))
+
+    log_prob = bglm.score_sentence('he was born on a farm')
+    print(log_prob)
+    print(math.exp(log_prob))
+
+    log_prob = bglm.score_sentence('this relatively small species has distinct pale blue eyes')
     print(log_prob)
     print(math.exp(log_prob))
