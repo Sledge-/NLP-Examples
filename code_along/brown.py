@@ -59,7 +59,7 @@ def get_sentences_with_word2idx_limit_vocab(n_vocab=2000, keep_words=KEEP_WORDS)
             indexed_sentence.append(idx)
         indexed_sentences.append(indexed_sentence)
     for word in keep_words:
-        # set_trace()
+        # set these all to infinity so they are kept when we pick most frequent words
         word_idx_count[word2idx[word]] = float('inf')
     sorted_word_idx_count = sorted(word_idx_count.items(), key=operator.itemgetter(1), reverse=True)
     word2idx_small = {}
@@ -67,9 +67,9 @@ def get_sentences_with_word2idx_limit_vocab(n_vocab=2000, keep_words=KEEP_WORDS)
     idx_new_idx_map = {}
     for idx, count in sorted_word_idx_count[:n_vocab]:
         word = idx2word[idx]
-        # print(word, count)
         word2idx_small[word] = new_idx
         idx_new_idx_map[idx] = new_idx
+        new_idx += 1       # iterate index by 1
     word2idx_small['UNKNONWN'] = new_idx
     unknown = new_idx
     assert('START' in word2idx_small)

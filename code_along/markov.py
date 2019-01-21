@@ -10,13 +10,13 @@ sys.path.append(os.path.abspath('..'))
 from brown import get_sentences_with_word2idx_limit_vocab, get_sentences_with_word2idx
 
 def get_bigram_probs(sentences, V, start_idx, end_idx, smoothing=1):
-    bigram_probs = np.ones((V,V)) + smoothing
+    bigram_probs = np.ones((V,V)) * smoothing
     for sentence in sentences:
         for i in range(len(sentence)):
-            if i ==0:
-                bigram_probs[start_idx, sentence[i]] +=1
+            if i == 0:
+                bigram_probs[start_idx, sentence[i]] += 1
             else:
-                bigram_probs[sentence[i-1], sentence[i]] +=1
+                bigram_probs[sentence[i-1], sentence[i]] += 1
             if i == len(sentence) - 1:
                 bigram_probs[sentence[i], end_idx] += 1
     bigram_probs /= bigram_probs.sum(axis=1, keepdims=True)
