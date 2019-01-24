@@ -185,7 +185,7 @@ def train_model(savedir):
     with open('%s/word2idx.json' % savedir, 'w') as f:
         json.dump(word2idx, f)
 
-    npsavez('%s/weights.npz' % savedir, W, V)
+    np.savez('%s/weights.npz' % savedir, W, V)
 
     return word2idx, W, V
 

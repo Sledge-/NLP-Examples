@@ -118,8 +118,8 @@ def train_model(savedir):
 
     learning_rate_delta = (learning_rate - final_learning_rate) / epochs
 
-    W = np.random.randn(vocab_size, D) # input-to-hidden
-    V = np.random.randn(D, vocab_size) # hidden-to-output
+    W = np.random.randn(vocab_size, D).astype(np.float32) # input-to-hidden
+    V = np.random.randn(D, vocab_size).astype(np.float32) # hidden-to-output
 
     tf_input = tf.placeholder(tf.int32, shape=(None,))
     tf_negword = tf.placeholder(tf.int32, shape=(None,))
@@ -151,6 +151,8 @@ def train_model(savedir):
     init_op = tf.global_variables_initializer()
     session.run(init_op)
 
+    p_neg = get_negative_sampling_distribution(sentences, vocab_size)
+
     costs = []
 
     total_words = sum(len(sentence) for sentence in sentences)
@@ -165,6 +167,9 @@ def train_model(savedir):
 
         cost = 0
         counter = 0
+        inputs = []
+        targets = []
+        negwords = []
         t0 = datetime.now()
         for sentence in sentences:
             sentence = [w for w in sentence if np.random.random() < (1 - p_drop[w])]
@@ -177,17 +182,31 @@ def train_model(savedir):
                 replace=False
             )
 
-            for pos in randomly_ordered_positions:
+            for j, pos in enumerate(randomly_ordered_positions):
                 word = sentence[pos]
 
                 context_words = get_context(pos, sentence, window_size)
                 neg_word = np.random.choice(vocab_size, p=p_neg)
-                targets = np.array(context_words)
 
-                c = sgd(word, targets, 1, learning_rate, W, V)
+                n = len(context_words)
+                inputs += [word]*n
+                negwords += [neg_word]*n
+                targets += context_words
+
+            if len(inputs) >= 128:
+                _, c = session.run(
+                    (train_op, loss),
+                    feed_dict={
+                        tf_input: inputs,
+                        tf_negword: negwords,
+                        tf_context: targets,
+                    }
+                )
                 cost += c
-                c = sgd(neg_word, targets, 0, learning_rate, W, V)
-                cost += c
+
+                inputs = []
+                targets = []
+                negwords = []
 
             counter += 1
             tot = len(sentences)
@@ -214,7 +233,7 @@ def train_model(savedir):
     with open('%s/word2idx.json' % savedir, 'w') as f:
         json.dump(word2idx, f)
 
-    npsavez('%s/weights.npz' % savedir, W, V)
+    np.savez('%s/weights.npz' % savedir, W, V)
 
     return word2idx, W, V
 
@@ -272,6 +291,7 @@ def load_model(savedir):
     return word2idx, W, V
 
 def analogy(pos1, neg1, pos2, neg2, word2idx, idx2word, W):
+    V, D = W.shape
 
     print("testing: %s - %s = %s - %s" % (pos1, neg1, pos2, neg2))
     for w in (pos1, neg1, pos2, neg2):
