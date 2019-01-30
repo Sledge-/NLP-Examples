@@ -137,7 +137,16 @@ class Glove:
                     c -= learning_rate*reg*c
             else:
                 #ALS - alternating least squares
-                pass
+                for i in range(V):
+                    matrix = reg*np.eye(D) + (fX[i,:]*U.T).dot(U)
+                    vector = (fX[i,:]*(logX[i,:] - b[i] - c - mu)).dot(U
+                    W[i] = np.linalg.solve(matrix, vector)
+                for i in range(V):
+                    denominator = fX[i,:].sum()
+                    numerator = fX[i,:].dot(logX[i,:] - W[i].dot(U.T) - c - mu)
+                    b[i] = numerator / denominator / (1 + reg)
+
+
         self.W = W
         self.U = U
 
