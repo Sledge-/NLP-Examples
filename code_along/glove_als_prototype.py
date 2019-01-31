@@ -110,7 +110,7 @@ class Glove:
         costs = []
         sentence_indexes = range(len(sentences))
         for epoch in range(epochs):
-            delta = W.dot(U.T) + b.reshape(V, 1) + c.reshape(1, V) + mu - logX
+            delta = W.dot(U.T) + b.reshape(V, 1) + c.reshape(1, V) + mu - logX # Uses reshape to cast b and c rowwise & columnwise to represent user & movie bias respectively
             cost = (fX * delta * delta). sum()
             costs.append(cost)
             print("epoch:", epoch, "cost:", cost)
@@ -139,12 +139,23 @@ class Glove:
                 #ALS - alternating least squares
                 for i in range(V):
                     matrix = reg*np.eye(D) + (fX[i,:]*U.T).dot(U)
-                    vector = (fX[i,:]*(logX[i,:] - b[i] - c - mu)).dot(U
+                    vector = (fX[i,:]*(logX[i,:] - b[i] - c - mu)).dot(U)
                     W[i] = np.linalg.solve(matrix, vector)
+
                 for i in range(V):
                     denominator = fX[i,:].sum()
                     numerator = fX[i,:].dot(logX[i,:] - W[i].dot(U.T) - c - mu)
                     b[i] = numerator / denominator / (1 + reg)
+
+                for j in range(V):
+                    matrix = reg*np.eye(D) + (fX[:,j]*W.T).dot(W)
+                    vector = (fX[:,j]*(logX[:,j] - b - c[j] - mu)).dot(W)
+                    U[j] = np.linalg.solve(matrix, vector)
+
+                for j in range(V):
+                    denominator = fX[:,j].sum()
+                    numerator = fX[:,j].dot(logX[:,j] - W.dot(U[j]) - b - mu)
+                    c[j] = numerator / denominator / (1 + reg)
 
 
         self.W = W
@@ -172,15 +183,16 @@ def main(we_file, w2i_file, n_files=50):
 
     V = len(word2idx)
     model = Glove(80, V, 10)
-    model.fit(
-        sentences=sentences,
-        cc_matrix=cc_matrix,
-        learning_rate=3*10e-5,
-        reg=0.01,
-        epochs=2000,
-        gd=True,
-        use_theano=False,
-    )
+    model.fit(sentences, cc_matrix=cc_matrix, epochs=20)
+    # model.fit(
+    #     sentences=sentences,
+    #     cc_matrix=cc_matrix,
+    #     learning_rate=3*10e-5,
+    #     reg=0.01,
+    #     epochs=2000,
+    #     gd=True,
+    #     use_theano=False,
+    # )
     model.save(we_file)
 
 
@@ -207,7 +219,7 @@ if __name__ == '__main__':
 
         find_analogies('king', 'man', 'woman', We, word2idx, idx2word)
         find_analogies('france', 'paris', 'london', We, word2idx, idx2word)
-        find_analogies('france', 'paris', 'rome', We, word2idx, idx2word)
+        # find_analogies('france', 'paris', 'rome', We, word2idx, idx2word)
         find_analogies('paris', 'france', 'italy', We, word2idx, idx2word)
         find_analogies('france', 'french', 'english', We, word2idx, idx2word)
         find_analogies('japan', 'japanese', 'chinese', We, word2idx, idx2word)
