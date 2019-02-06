@@ -11,7 +11,7 @@ from sklearn.metrics import f1_score
 from sklearn.tree import DecisionTreeClassifier
 
 class LogisticRegression:
-    def __init(self):
+    def __init__(self):
         pass
 
     def fit(self, X, Y, V=None, K=None, lr=10e-1, mu=0.99, batch_sz=100, epochs=6):
@@ -56,7 +56,7 @@ class LogisticRegression:
         )
 
         costs = []
-        n_batches = N / batch_sz
+        n_batches = N // batch_sz
         for i in range(epochs):
             X, Y = shuffle(X, Y)
             print("epoch:", i)
@@ -80,7 +80,7 @@ class LogisticRegression:
         return f1_score(Y, p, average=None).mean()
 
 
-def get_data(split_sequence=False):
+def get_data(split_sequences=False):
     word2idx = {}
     tag2idx = {}
     word_idx = 0
@@ -132,7 +132,7 @@ def get_data(split_sequence=False):
             Ytest.append(currentY)
             currentX = []
             currentY = []
-    if not split_sequecnes:
+    if not split_sequences:
         Xtest = currentX
         Ytest = currentY
 
@@ -165,7 +165,7 @@ def main():
     Ytest = np.array(Ytest)
 
     print("dt test score:", dt.score(Xtest.reshape(Ntest, 1), Ytest))
-    p = dt.predict(Xtest.reshape(N, 1))
+    p = dt.predict(Xtest.reshape(Ntest, 1))
     print("dt test f1:", f1_score(Ytest, p , average=None).mean())
 
     print("lr test score:", model.score(Xtest, Ytest))
