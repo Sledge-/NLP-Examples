@@ -101,6 +101,7 @@ tfbo = tf.Variable(bo)
 
 # set up the rnn unit
 rnn_unit = GRUCell(num_units=hidden_layer_size, activation=tf.nn.relu)
+rnn_unit_dropout = DropoutWrapper(rnn_unit, output_keep_prob=keep_prob)
 
 # get the output
 x = tf.nn.embedding_lookup(tfWe, inputs)
@@ -110,7 +111,7 @@ x = tf.nn.embedding_lookup(tfWe, inputs)
 x = tf.unstack(x, sequence_length, 1)
 
 # get the rnn output
-outputs, states = get_rnn_output(rnn_unit, x, dtype=tf.float32)
+outputs, states = get_rnn_output(rnn_unit_dropout, x, dtype=tf.float32)
 
 
 
@@ -176,7 +177,7 @@ for i in range(epochs):
             sys.stdout.flush()
 
     # get the test acc. too
-    p = sess.run(predict_op, feed_dict={inputs: Xtest, targets: Ytest})
+    p = sess.run(predict_op, feed_dict={inputs: Xtest, targets: Ytest, keep_prob: 0.6})
     n_test_correct = 0
     n_test_total = 0
     for yi, pi in zip(Ytest, p):
