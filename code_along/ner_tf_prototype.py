@@ -12,6 +12,7 @@ from sklearn.metrics import f1_score
 
 from tensorflow.contrib.rnn import static_rnn as get_rnn_output
 from tensorflow.contrib.rnn import BasicRNNCell, GRUCell
+from tensorflow.contrib.rnn import DropoutWrapper
 
 def get_data(split_sequences=False):
     word2idx = {}
@@ -64,11 +65,11 @@ V = len(word2idx) + 2
 K = len(set(flatten(Ytrain)) | set(flatten(Ytest))) + 1
 
 # training config
-epochs = 5
-learning_rate = 1e-2
+epochs = 50
+learning_rate = 1e-3
 mu = 0.99
 batch_size = 32
-hidden_layer_size = 10
+hidden_layer_size = 17
 embedding_dim = 10
 sequence_length = max(len(x) for x in Xtrain + Xtest)
 
@@ -83,6 +84,7 @@ print("Ytrain.shape:", Ytrain.shape)
 # inputs
 inputs = tf.placeholder(tf.int32, shape=(None, sequence_length))
 targets = tf.placeholder(tf.int32, shape=(None, sequence_length))
+keep_prob = tf.placeholder(tf.float32)
 num_samples = tf.shape(inputs)[0] # useful for later
 
 # embedding
@@ -109,6 +111,8 @@ x = tf.unstack(x, sequence_length, 1)
 
 # get the rnn output
 outputs, states = get_rnn_output(rnn_unit, x, dtype=tf.float32)
+
+
 
 # outputs are now of size (T, N, M)
 # so make it (N, T, M)
