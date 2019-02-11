@@ -113,8 +113,6 @@ x = tf.unstack(x, sequence_length, 1)
 # get the rnn output
 outputs, states = get_rnn_output(rnn_unit_dropout, x, dtype=tf.float32)
 
-
-
 # outputs are now of size (T, N, M)
 # so make it (N, T, M)
 outputs = tf.transpose(outputs, (1, 0, 2))
@@ -157,7 +155,7 @@ for i in range(epochs):
         # get the cost, predictions, and perform a gradient descent step
         c, p, _ = sess.run(
             (cost_op, predict_op, train_op),
-            feed_dict = {inputs: x, targets: y}
+            feed_dict = {inputs: x, targets: y, keep_prob: 0.6}
         )
         cost += c
 
@@ -177,7 +175,7 @@ for i in range(epochs):
             sys.stdout.flush()
 
     # get the test acc. too
-    p = sess.run(predict_op, feed_dict={inputs: Xtest, targets: Ytest, keep_prob: 0.6})
+    p = sess.run(predict_op, feed_dict={inputs: Xtest, targets: Ytest, keep_prob: 1.0})
     n_test_correct = 0
     n_test_total = 0
     for yi, pi in zip(Ytest, p):
