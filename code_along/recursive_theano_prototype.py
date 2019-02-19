@@ -12,13 +12,25 @@ from nlp_class2.util import init_weight, display_tree
 from get_ptb_data import get_ptb_data
 from datetime import datetime
 
+def adagrad(cost, params, lr, eps=1e-10):
+    grads = T.grad(cost, params)
+    caches = [theano.shared(np.ones_like(p.get_value())) for p in params]
+    new_caches = [c + g*g for c, g in zip(caches, grads)]
+
+    c_update = [(c, new_c) for c, new_c in zip(caches, new_caches)]
+    g_update = [
+      (p, p - lr*g / T.sqrt(new_c + eps)) for p, new_c, g in zip(params, new_caches, grads)
+    ]
+    updates = c_update + g_update
+    return updates
+
 class RecursiveNN:
     def __init__(self, V, D, K):
         self.V = V
         self.D = D
         self.K = K
 
-    def fit(self, trees, learning_rate=3*10e-4, mu=0.99, reg=10e-5, epochs=15, activation=T.nnet.relu, train_inner_nodes=False):
+    def fit(self, trees, learning_rate=3*1e-3, mu=0.99, reg=1e-4, epochs=15, activation=T.nnet.relu, train_inner_nodes=False):
         D = self.D
         V = self.V
         K = self.K
@@ -79,26 +91,27 @@ class RecursiveNN:
         else:
             cost = -T.mean(T.log(py_x[-1, labels[-1]])) + rcost
 
-        grads = T.grad(cost, self.params)
-        dparams = [theano.shared(p.get_value()*0) for p in self.params]
+        # grads = T.grad(cost, self.params)
+        # dparams = [theano.shared(p.get_value()*0) for p in self.params]
+        #
+        # updates = [
+        #     (p, p * mu*dp - learning_rate*g) for p, dp, g in zip(self.params, dparams, grads)
+        # ] + [
+        #     (dp, mu*dp - learning_rate*g) for dp, g in zip(dparams, grads)
+        # ]
 
-        updates = [
-            (p, p * mu*dp - learning_rate*g) for p, dp, g in zip(self.params, dparams, grads)
-        ] + [
-            (dp, mu*dp - learning_rate*g) for dp, g in zip(dparams, grads)
-        ]
+        updates = adagrad(cost, self.params, lr=1e-4)
 
         self.cost_predict_op = theano.function(
-            inputs=[words, parents, relations, label],
-            outputs=[costs, prediction],
+            inputs=[words, parents, relations, labels],
+            outputs=[cost, prediction],
             allow_input_downcast=True,
         )
 
         self.train_op = theano.function(
-            inputs=[words, parents, relations, label],
-            outputs=[costs, prediction],
-            updates=updates,
-            allow_input_downcast=True,
+            inputs=[words, parents, relations, labels],
+            outputs=[h, cost, prediction],
+            updates=updates
         )
 
         costs = []
@@ -115,8 +128,8 @@ class RecursiveNN:
             it = 0
             for j in sequence_indexes:
                 words, par, rel, lab = trees[j]
-                c, p  = self.train_op(words, par, rel, lab)
-                costs += c
+                _, c, p  = self.train_op(words, par, rel, lab)
+                cost += c
                 if train_inner_nodes:
                     n_correct += np.sum(p == lab)
                 else:
@@ -128,6 +141,7 @@ class RecursiveNN:
                 print("i:", i, "cost:", cost, "correct rate:", (float(n_correct)/n_total), "time for epoch:", (datetime.now() - t0))
                 costs.append(cost)
 
+        print('costs:', costs)
         plt.plot(costs)
         plt.show()
 
@@ -179,7 +193,7 @@ def tree2list(tree, parent_idx, is_binary=False, is_left=False, is_right=False):
     return words, parents, relations, labels
 
 def main(is_binary=True):
-    train, text, word2idx = get_ptb_data()
+    train, test, word2idx = get_ptb_data()
 
     for t in train:
         add_idx_to_tree(t, 0)
