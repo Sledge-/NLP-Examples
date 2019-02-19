@@ -310,7 +310,7 @@ def main(is_binary=True):
     K = 2 if is_binary else 5
 
     model = RecursiveNN(V, D, K)
-    model.fit(train, smalltest, reg=1e-3, epochs=20, train_inner_nodes=True)
+    model.fit(train, smalltest, reg=1e-3, epochs=50, train_inner_nodes=True)
     print("train accuracy:", model.score(train))
     print("test accuracy:", model.score(test))
     print("train f1:", model.f1_score(train))
